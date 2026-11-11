@@ -11,7 +11,7 @@ services:
       - "./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
       - "mosquitto_data:/mosquitto/data"
 
-  # --- Base de datos de históricos ------------------------------------------
+  # --- Base de datos de históricos -----------------------------------------
   influxdb:
     image: influxdb:2.7
     container_name: smartmine-influxdb
@@ -30,7 +30,22 @@ services:
       - "influxdb_data:/var/lib/influxdb2"
       - "influxdb_config:/etc/influxdb2"
 
-# --- Volúmenes con nombre -----------------------------------------------------
+  # --- Puente MQTT → InfluxDB ----------------------------------------------
+  telegraf:
+    image: telegraf:1.34
+    container_name: smartmine-telegraf
+    restart: unless-stopped
+    environment:
+      INFLUX_TOKEN: ${INFLUX_TOKEN}
+      INFLUX_ORG: ${INFLUX_ORG}
+      INFLUX_BUCKET: ${INFLUX_BUCKET}
+    volumes:
+      - "./infra/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
+    depends_on:
+      - mosquitto
+      - influxdb
+
+# --- Volúmenes con nombre ----------------------------------------------------
 volumes:
   mosquitto_data:
   influxdb_data:
