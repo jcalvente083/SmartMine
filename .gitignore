@@ -34,6 +34,7 @@ CMakeLists.txt.user*
 *.pro.user*
 CMakeCache.txt
 CMakeFiles/
+CMakeUserPresets.json
 compile_commands.json
 moc_*.cpp
 qrc_*.cpp
@@ -52,6 +53,7 @@ data/
 
 # --- IDEs y editores ---------------------------------------------------------
 .vscode/
+.vs/
 .idea/
 *.swp
 *~
