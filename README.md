@@ -78,8 +78,8 @@ SmartMine/
 ## 🗺️ Roadmap
 
 **Fase 1 · Infraestructura y Core**
-- [ ] Broker MQTT, InfluxDB y Telegraf con Docker Compose
-- [ ] Proyecto base Qt con Qt MQTT
+- [X] Broker MQTT, InfluxDB y Telegraf con Docker Compose
+- [X] Proyecto base Qt con Qt MQTT
 - [ ] Mock Login con filtrado de pestañas por rol
 - [ ] Hoja de estilo QSS de modo oscuro industrial
 - [ ] Bot de Telegram básico
