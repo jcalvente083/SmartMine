@@ -100,7 +100,7 @@ SmartMine/
 
 ## 🚀 Puesta en marcha
 
-_Próximamente._
+Consulta la [guía de preparación del entorno](docs/SETUP.md)
 
 ---
 
