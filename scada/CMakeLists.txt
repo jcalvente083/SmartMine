@@ -10,7 +10,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Mqtt)
 qt_standard_project_setup()
 
 qt_add_executable(SmartMineScada
-    main.cpp
+    src/main.cpp
 )
 
 target_link_libraries(SmartMineScada PRIVATE Qt6::Core Qt6::Mqtt)
