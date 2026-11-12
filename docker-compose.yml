@@ -10,6 +10,13 @@ services:
     volumes:
       - "./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
       - "mosquitto_data:/mosquitto/data"
+    healthcheck:
+      # Si consigue publicar, el broker está vivo (topic fuera de smartmine/#)
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "healthcheck/mosquitto", "-m", "ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   # --- Base de datos de históricos -----------------------------------------
   influxdb:
@@ -29,6 +36,12 @@ services:
     volumes:
       - "influxdb_data:/var/lib/influxdb2"
       - "influxdb_config:/etc/influxdb2"
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s   # La configuración inicial tarda unos segundos
 
   # --- Puente MQTT → InfluxDB ----------------------------------------------
   telegraf:
@@ -36,14 +49,18 @@ services:
     container_name: smartmine-telegraf
     restart: unless-stopped
     environment:
+      # Izquierda: nombres que pide telegraf.conf · Derecha: valores del .env
       INFLUX_TOKEN: ${INFLUX_TOKEN}
       INFLUX_ORG: ${INFLUX_ORG}
       INFLUX_BUCKET: ${INFLUX_BUCKET}
     volumes:
       - "./infra/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
     depends_on:
-      - mosquitto
-      - influxdb
+      # Arranca solo cuando ambos estén sanos, no solo arrancados
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
 
 # --- Volúmenes con nombre ----------------------------------------------------
 volumes:
