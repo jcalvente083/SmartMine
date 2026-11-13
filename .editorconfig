@@ -1,0 +1,23 @@
+# =============================================================================
+#  SmartMine — Reglas de formato comunes para todos los editores
+#  https://editorconfig.org
+# =============================================================================
+
+root = true
+
+# --- Por defecto, para todos los ficheros ------------------------------------
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# --- Configuración e infraestructura (sangría de 2) ---------------------------
+[*.{yml,yaml,json,conf}]
+indent_size = 2
+
+# --- Markdown ----------------------------------------------------------------
+# Dos espacios al final de línea son un salto de línea en Markdown
+[*.md]
+trim_trailing_whitespace = false
