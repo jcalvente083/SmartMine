@@ -20,6 +20,12 @@ qt_add_executable(SmartMineScada
     src/views/mainwindow.cpp
 )
 
+qt_add_resources(SmartMineScada "styles"
+    PREFIX "/styles"
+    BASE "resources"
+    FILES resources/dark.qss
+)
+
 target_link_libraries(SmartMineScada PRIVATE Qt6::Core Qt6::Mqtt Qt6::Widgets)
 
 target_include_directories(SmartMineScada PRIVATE src)

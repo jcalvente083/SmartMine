@@ -8,6 +8,8 @@
 #include "views/mainwindow.h"
 
 #include <QApplication>
+#include <QFile>
+#include <QDebug>
 
 namespace {
 
@@ -21,6 +23,13 @@ namespace {
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+
+    QFile styleFile(QStringLiteral(":/styles/dark.qss"));
+if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    app.setStyleSheet(QString::fromUtf8(styleFile.readAll()));
+} else {
+    qWarning() << "No se ha podido cargar la hoja de estilo";
+}
 
     MqttService mqttService(MqttConfig{ kBrokerHost, kBrokerPort, kClientId });
     MainViewModel mainViewModel(mqttService);

@@ -1,0 +1,60 @@
+/* =============================================================================
+   SmartMine SCADA: modo oscuro industrial
+   ============================================================================= */
+
+/* --- Base ------------------------------------------------------------------ */
+QWidget {
+    background-color: #1e1f22;
+    color: #d4d4d4;
+    font-family: "Segoe UI";
+    font-size: 10pt;
+}
+
+QMainWindow,
+QStatusBar {
+    background-color: #18191b;
+}
+
+/* --- Pestañas -------------------------------------------------------------- */
+QTabWidget::pane {
+    border: 1px solid #3a3c40;
+    top: -1px;
+}
+
+QTabBar::tab {
+    background-color: #2a2c30;
+    color: #a0a0a0;
+    padding: 8px 20px;
+    border: 1px solid #3a3c40;
+    border-bottom: none;
+}
+
+QTabBar::tab:selected {
+    background-color: #1e1f22;
+    color: #ffffff;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #33353a;
+}
+
+/* --- Barra de estado ------------------------------------------------------- */
+QStatusBar {
+    border-top: 1px solid #3a3c40;
+}
+
+QStatusBar QLabel {
+    padding: 2px 8px;
+}
+
+/* --- Indicador de conexión --------------------------------------------------
+   Estado normal: discreto. Estado anómalo: llamativo (principio ISA-101). */
+QLabel#connectionIndicator[connected="true"] {
+    color: #8fbf8f;
+}
+
+QLabel#connectionIndicator[connected="false"] {
+    color: #ffffff;
+    background-color: #b3261e;
+    font-weight: bold;
+}

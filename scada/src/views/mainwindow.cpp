@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QStatusBar>
 #include <QTabWidget>
+#include <QStyle>
 
 MainWindow::MainWindow(MainViewModel& viewModel, QWidget* parent)
     : QMainWindow(parent)
@@ -30,10 +31,14 @@ void MainWindow::setupUi()
     setCentralWidget(m_tabs);
 
     m_connectionLabel = new QLabel(this);
+    m_connectionLabel->setObjectName(QStringLiteral("connectionIndicator"));
     statusBar()->addPermanentWidget(m_connectionLabel);
 }
 
 void MainWindow::updateConnectionIndicator()
 {
     m_connectionLabel->setText(m_viewModel.connectionText());
+    m_connectionLabel->setProperty("connected", m_viewModel.isConnected());
+    style()->unpolish(m_connectionLabel);
+    style()->polish(m_connectionLabel);
 }
