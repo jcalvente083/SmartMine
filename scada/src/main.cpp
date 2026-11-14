@@ -1,13 +1,13 @@
 // =============================================================================
-//  SmartMine SCADA: raíz de composición (provisional, en consola)
-//  Crea el MqttService, se suscribe a smartmine/# e imprime cada mensaje.
-//  La reconexión automática es responsabilidad del servicio.
+//  SmartMine SCADA: raíz de composición
+//  Crea los servicios, los ViewModels y las vistas, y los conecta entre sí.
 // =============================================================================
 
 #include "services/mqttservice.h"
+#include "viewmodels/mainviewmodel.h"
+#include "views/mainwindow.h"
 
-#include <QCoreApplication>
-#include <QDebug>
+#include <QApplication>
 
 namespace {
 
@@ -15,28 +15,18 @@ namespace {
     constexpr auto    kBrokerHost = "localhost";
     constexpr quint16 kBrokerPort = 1883;
     constexpr auto    kClientId = "smartmine-scada-dev";
-    constexpr auto    kTopicFilter = "smartmine/#";
 
 } // namespace
 
 int main(int argc, char* argv[])
 {
-    QCoreApplication app(argc, argv);
+    QApplication app(argc, argv);
 
-    const MqttConfig config{ kBrokerHost, kBrokerPort, kClientId };
-    MqttService mqttService(config);
+    MqttService mqttService(MqttConfig{ kBrokerHost, kBrokerPort, kClientId });
+    MainViewModel mainViewModel(mqttService);
+    MainWindow mainWindow(mainViewModel);
 
-    QObject::connect(&mqttService, &IMessageBus::connectionStateChanged,
-        [](bool connected) {
-            qDebug() << (connected ? "Estado: conectado" : "Estado: desconectado");
-        });
-
-    QObject::connect(&mqttService, &IMessageBus::messageReceived,
-        [](const QString& topic, const QByteArray& payload) {
-            qDebug().noquote() << QStringLiteral("[%1]").arg(topic) << payload;
-        });
-
-    mqttService.subscribe(kTopicFilter);
+    mainWindow.show();
     mqttService.start();
 
     return app.exec();
