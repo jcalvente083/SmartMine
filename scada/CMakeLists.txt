@@ -12,9 +12,13 @@ qt_standard_project_setup()
 qt_add_executable(SmartMineScada
     src/main.cpp
     src/services/imessagebus.h
+    src/services/mqttservice.h
+    src/services/mqttservice.cpp
 )
 
 target_link_libraries(SmartMineScada PRIVATE Qt6::Core Qt6::Mqtt)
+
+target_include_directories(SmartMineScada PRIVATE src)
 
 if(MSVC)
     target_compile_options(SmartMineScada PRIVATE /W4 /utf-8)
