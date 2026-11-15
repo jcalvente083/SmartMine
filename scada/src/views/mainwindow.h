@@ -1,5 +1,8 @@
 #pragma once
 
+#include "models/role.h"
+
+#include <QList>
 #include <QMainWindow>
 
 class MainViewModel;
@@ -16,8 +19,13 @@ public:
 private:
     void setupUi();
     void updateConnectionIndicator();
+    void updateRoleView();
 
     MainViewModel& m_viewModel;
+
     QTabWidget* m_tabs = nullptr;
+    QLabel* m_roleLabel = nullptr;
     QLabel* m_connectionLabel = nullptr;
+
+    QList<Module> m_tabModules; 
 };

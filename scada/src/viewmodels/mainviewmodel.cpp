@@ -1,12 +1,16 @@
 #include "mainviewmodel.h"
 
 #include "services/imessagebus.h"
+#include "models/permissionpolicy.h"
+#include "services/sessionservice.h"
 
-MainViewModel::MainViewModel(IMessageBus& messageBus, QObject* parent)
+MainViewModel::MainViewModel(IMessageBus& messageBus, SessionService& session, QObject* parent)
     : QObject(parent)
     , m_messageBus(messageBus)
+    , m_session(session)
 {
     connect(&m_messageBus, &IMessageBus::connectionStateChanged, this, &MainViewModel::connectedChanged);
+    connect(&m_session, &SessionService::roleChanged, this, &MainViewModel::roleChanged);
 }
 
 bool MainViewModel::isConnected() const
@@ -20,6 +24,15 @@ QString MainViewModel::connectionText() const
         : QStringLiteral("Sin conexión: datos no actualizados");
 }
 
+QString MainViewModel::roleName() const
+{
+    return PermissionPolicy::roleDisplayName(m_session.role());
+}
 
+bool MainViewModel::canView(Module module) const
+{
+    return PermissionPolicy::canView(m_session.role(), module);
+    
+}
 
 

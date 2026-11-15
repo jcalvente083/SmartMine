@@ -20,12 +20,16 @@ qt_add_executable(SmartMineScada
     src/services/imessagebus.h
     src/services/mqttservice.h
     src/services/mqttservice.cpp
+    src/services/sessionservice.h
+    src/services/sessionservice.cpp
 
     src/viewmodels/mainviewmodel.h
     src/viewmodels/mainviewmodel.cpp
 
     src/views/mainwindow.h
     src/views/mainwindow.cpp
+    src/views/logindialog.h
+    src/views/logindialog.cpp
 )
 
 qt_add_resources(SmartMineScada "styles"
