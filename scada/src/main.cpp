@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     MainViewModel mainViewModel(mqttService, sessionService);
     MainWindow mainWindow(mainViewModel);
 
-    mainWindow.show();
+    mainWindow.showMaximized();
     mqttService.start();
 
     return app.exec();

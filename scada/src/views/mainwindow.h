@@ -7,6 +7,7 @@
 
 class MainViewModel;
 class QLabel;
+class QPushButton;
 class QTabWidget;
 
 class MainWindow : public QMainWindow
@@ -26,6 +27,7 @@ private:
     QTabWidget* m_tabs = nullptr;
     QLabel* m_roleLabel = nullptr;
     QLabel* m_connectionLabel = nullptr;
+    QPushButton* m_switchUserButton = nullptr;
 
     QList<Module> m_tabModules; 
 };

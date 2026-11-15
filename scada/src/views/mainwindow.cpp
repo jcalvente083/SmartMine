@@ -1,10 +1,13 @@
 #include "mainwindow.h"
 
 #include "viewmodels/mainviewmodel.h"
+#include "views/logindialog.h"
 
 #include <QLabel>
+#include <QPushButton>
 #include <QStatusBar>
 #include <QStyle>
+#include <QScreen>
 #include <QTabWidget>
 
 MainWindow::MainWindow(MainViewModel& viewModel, QWidget* parent)
@@ -15,6 +18,12 @@ MainWindow::MainWindow(MainViewModel& viewModel, QWidget* parent)
 
     connect(&m_viewModel, &MainViewModel::connectedChanged, this, &MainWindow::updateConnectionIndicator);
     connect(&m_viewModel, &MainViewModel::roleChanged, this, &MainWindow::updateRoleView);
+    connect(m_switchUserButton, &QPushButton::clicked, this, [this]() {
+        LoginDialog dialog(this);
+        if (dialog.exec() == QDialog::Accepted) {
+            m_viewModel.changeRole(dialog.selectedRole());
+        }
+        });
 
     updateConnectionIndicator();
     updateRoleView();
@@ -23,7 +32,12 @@ MainWindow::MainWindow(MainViewModel& viewModel, QWidget* parent)
 void MainWindow::setupUi()
 {
     setWindowTitle(QStringLiteral("SmartMine SCADA"));
-    resize(1280, 800);
+
+    const QRect available = screen()->availableGeometry();
+    resize(available.size() * 0.8);
+    move(available.center() - rect().center());
+
+
 
     m_tabs = new QTabWidget(this);
 
@@ -40,6 +54,9 @@ void MainWindow::setupUi()
     m_tabModules.append(Module::Logistics);
 
     setCentralWidget(m_tabs);
+
+    m_switchUserButton = new QPushButton(QStringLiteral("Cambiar de usuario"), this);
+    statusBar()->addPermanentWidget(m_switchUserButton);
 
     m_roleLabel = new QLabel(this);
     statusBar()->addPermanentWidget(m_roleLabel);

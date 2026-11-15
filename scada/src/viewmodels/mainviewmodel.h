@@ -23,6 +23,7 @@ public:
     QString connectionText() const;
     QString roleName() const;
     bool canView(Module module) const;
+    void changeRole(Role role);
 
 signals:
     void connectedChanged(bool connected);

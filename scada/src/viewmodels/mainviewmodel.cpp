@@ -35,4 +35,7 @@ bool MainViewModel::canView(Module module) const
     
 }
 
-
+void MainViewModel::changeRole(Role role)
+{
+    m_session.setRole(role);
+}
