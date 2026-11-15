@@ -25,6 +25,8 @@ qt_add_executable(SmartMineScada
 
     src/viewmodels/mainviewmodel.h
     src/viewmodels/mainviewmodel.cpp
+    src/viewmodels/emergencyviewmodel.h
+    src/viewmodels/emergencyviewmodel.cpp
 
     src/views/mainwindow.h
     src/views/mainwindow.cpp

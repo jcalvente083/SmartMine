@@ -5,6 +5,7 @@
 
 #include "services/mqttservice.h"
 #include "services/sessionservice.h"
+#include "viewmodels/emergencyviewmodel.h"
 #include "viewmodels/mainviewmodel.h"
 #include "views/logindialog.h"
 #include "views/mainwindow.h"
@@ -39,10 +40,14 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+
     SessionService sessionService(loginDialog.selectedRole());
     MqttService mqttService(MqttConfig{ kBrokerHost, kBrokerPort, kClientId });
+
     MainViewModel mainViewModel(mqttService, sessionService);
-    MainWindow mainWindow(mainViewModel);
+    EmergencyViewModel emergencyViewModel(mqttService, sessionService);
+
+    MainWindow mainWindow(mainViewModel, emergencyViewModel);
 
     mainWindow.showMaximized();
     mqttService.start();

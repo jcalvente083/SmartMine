@@ -58,3 +58,31 @@ QLabel#connectionIndicator[connected="false"] {
     background-color: #b3261e;
     font-weight: bold;
 }
+
+/* --- Parada de emergencia ---------------------------------------------------
+   La única pieza en rojo permanente: debe encontrarse sin buscarla.
+   Rojo sobre amarillo, como las setas físicas (ISO 13850). */
+QPushButton#emergencyStopButton {
+    background-color: #b3261e;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 12pt;
+    padding: 10px 24px;
+    border: 2px solid #ffcc00;
+    border-radius: 6px;
+}
+
+QPushButton#emergencyStopButton:hover {
+    background-color: #d32f2f;
+}
+
+QPushButton#emergencyStopButton:pressed {
+    background-color: #8e1c16;
+}
+
+QLabel#emergencyBanner {
+    background-color: #b3261e;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 8px;
+}
