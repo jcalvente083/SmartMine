@@ -9,6 +9,8 @@
 #include <QStyle>
 #include <QScreen>
 #include <QTabWidget>
+#include <QCloseEvent>
+#include <QMessageBox>
 
 MainWindow::MainWindow(MainViewModel& viewModel, QWidget* parent)
     : QMainWindow(parent)
@@ -81,5 +83,23 @@ void MainWindow::updateRoleView()
 
     for (int i = 0; i < m_tabModules.size(); ++i) {
         m_tabs->setTabVisible(i, m_viewModel.canView(m_tabModules[i]));
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    const auto answer = QMessageBox::question(
+        this,
+        QStringLiteral("Salir de SmartMine SCADA"),
+        QStringLiteral("¿Seguro que quieres cerrar el SCADA?\n"
+            "Se dejará de supervisar la operación."),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+
+    if (answer == QMessageBox::Yes) {
+        event->accept();
+    }
+    else {
+        event->ignore();
     }
 }
