@@ -22,7 +22,7 @@ SmartMine simula la capa de supervisión y control de una mina de cobre de alto 
 
 | Módulo | Función | Control desde el SCADA |
 |---|---|---|
-| 🔧 **Mantenimiento Predictivo** | Telemetría de maquinaria (temperatura, vibración...) | Parada individual por máquina |
+| 🔧 **Mantenimiento Predictivo** | Telemetría de maquinaria (temperatura, velocidad, par...) | Parada individual por máquina |
 | 🌫️ **Medio Ambiente** | Detección de anomalías (polvo, agua) | Activar aspersores de supresión |
 | 🦺 **Seguridad Laboral** | Visión artificial (YOLO) para detección de EPIs | Permitir / Denegar acceso (UI y Telegram) |
 | 🚛 **Logística Multiagente** | Simulación de camiones en un grid con rutas heurísticas | Asignar nueva tarea (Zona Norte/Sur) |
@@ -62,7 +62,7 @@ flowchart LR
 | Históricos | InfluxDB 2.x + Telegraf |
 | Nodos Edge | Python · Arquitectura Hexagonal |
 | Visión artificial | OpenCV · YOLOv8 |
-| Dashboard SCADA | C++ · Qt 6 · MVVM · QtCharts |
+| Dashboard SCADA | C++17 · Qt 6 (Widgets, MQTT) · MVVM |
 | Notificaciones | Telegram Bot API (Inline Keyboards) |
 
 ## 📁 Estructura del proyecto
@@ -70,18 +70,29 @@ flowchart LR
 ```
 SmartMine/
 ├── docker-compose.yml   # Orquestación de servicios
+├── docs/                # Documentación técnica
 ├── infra/               # Configuración de servicios de terceros
 ├── edge/                # Nodos Edge en Python
 └── scada/               # Dashboard SCADA en C++/Qt
 ```
 
+## 📚 Documentación
+
+- [Contrato MQTT](docs/MQTT_TOPICS.md): jerarquía de topics, QoS y formato de los mensajes.
+- [Arquitectura del SCADA](docs/SCADA_ARCHITECTURE.md): capas MVVM, servicios, RBAC y decisiones de diseño.
+- [Preparación del entorno](docs/SETUP.md): instalación de Docker, Qt y compilación de Qt MQTT.
+
 ## 🗺️ Roadmap
 
 **Fase 1 · Infraestructura y Core**
-- [X] Broker MQTT, InfluxDB y Telegraf con Docker Compose
-- [X] Proyecto base Qt con Qt MQTT
-- [ ] Mock Login con filtrado de pestañas por rol
-- [ ] Hoja de estilo QSS de modo oscuro industrial
+- [x] Broker MQTT, InfluxDB y Telegraf con Docker Compose
+- [x] Healthchecks y arranque ordenado de la infraestructura
+- [x] Contrato MQTT documentado (topics, QoS, enclavamiento de emergencia)
+- [x] Proyecto base Qt con Qt MQTT
+- [x] Servicio MQTT con reconexión automática (backoff exponencial)
+- [x] Mock Login con filtrado de pestañas por rol
+- [x] Cambio de usuario en vivo y confirmación de salida
+- [x] Hoja de estilo QSS de modo oscuro industrial
 - [ ] Bot de Telegram básico
 
 **Fase 2 · Nodos Edge**
@@ -100,7 +111,7 @@ SmartMine/
 
 ## 🚀 Puesta en marcha
 
-Consulta la [guía de preparación del entorno](docs/SETUP.md)
+Consulta la [guía de preparación del entorno](docs/SETUP.md).
 
 ---
 
