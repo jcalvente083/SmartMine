@@ -93,7 +93,7 @@ SmartMine/
 - [x] Mock Login con filtrado de pestañas por rol
 - [x] Cambio de usuario en vivo y confirmación de salida
 - [x] Hoja de estilo QSS de modo oscuro industrial
-- [ ] Bot de Telegram básico
+- [x] Bot de Telegram básico
 
 **Fase 2 · Nodos Edge**
 - [ ] Plantilla base hexagonal (Dominio, Puertos, Adaptadores)
@@ -102,12 +102,14 @@ SmartMine/
 - [ ] Nodo de Seguridad (YOLOv8 + Telegram)
 - [ ] Nodo de Logística Multiagente
 - [ ] Dockerización con recursos limitados
+- [ ] Modelo de ML (AI4I 2020) con explicabilidad SHAP en el nodo de Mantenimiento
 
 **Fase 3 · SCADA y bidireccionalidad**
 - [ ] Pestañas de la UI con patrón MVVM
 - [ ] Gráficas en tiempo real e históricos
 - [ ] Mapa logístico con `QGraphicsView`
 - [ ] Controles bidireccionales y Parada de Emergencia Global
+- [ ] Informe de diagnóstico en el SCADA (plantilla y SLM local con Ollama)
 
 ## 🚀 Puesta en marcha
 
