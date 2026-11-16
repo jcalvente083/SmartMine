@@ -1,0 +1,14 @@
+[project]
+name = "smartmine-common"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "JeSuSd1524", email = "jesusdavid.calvente083@alu.uhu.es" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"

@@ -1,0 +1,6 @@
+# Workspace de los nodos Edge: proyectos que comparten entorno y lockfile
+[tool.uv.workspace]
+members = [
+    "common",
+    "maintenance",
+]
