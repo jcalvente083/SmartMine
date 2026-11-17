@@ -1,4 +1,8 @@
-# ⛏️ SmartMine
+<p align="center">
+  <img src="docs/assets/logo.png" alt="SmartMine" width="220">
+</p>
+
+<h1 align="center">SmartMine</h1>
 
 **Sistema SCADA bidireccional y Edge Computing para minería subterránea (IIoT / Industria 4.0)**
 
