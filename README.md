@@ -115,6 +115,13 @@ SmartMine/
 
 Consulta la [guía de preparación del entorno](docs/SETUP.md).
 
+## 📊 Datos
+
+El nodo de Mantenimiento reproduce el *AI4I 2020 Predictive Maintenance Dataset*,
+de S. Matzka (2020), publicado en el
+[UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset)
+bajo licencia [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
 ---
 
 👤 **Autor:** Jesús David Calvente Zapata · [LinkedIn](https://www.linkedin.com/in/jcalvente083/) · [GitHub](https://github.com/jcalvente083)
