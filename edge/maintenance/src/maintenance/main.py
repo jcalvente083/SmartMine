@@ -104,7 +104,7 @@ def run_loop(
     tick_interval_s: float,
     stop_event: threading.Event,
 ) -> None:
-    next_tick = time.monotonic()  # Reloj que nunca va hacia atrás
+    next_tick = time.monotonic() + tick_interval_s  # Reloj que nunca va hacia atrás
     while not stop_event.is_set():
         remaining = next_tick - time.monotonic()
         if remaining <= 0:
