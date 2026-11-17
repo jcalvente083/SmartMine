@@ -7,7 +7,9 @@ authors = [
     { name = "JeSuSd1524", email = "jesusdavid.calvente083@alu.uhu.es" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "paho-mqtt>=2.2.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.17,<0.10.0"]
