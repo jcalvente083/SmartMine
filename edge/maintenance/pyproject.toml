@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "lightgbm>=4.7.0",
     "smartmine-common",
 ]
 
@@ -25,4 +26,12 @@ smartmine-common = { workspace = true }
 dev = [
     "pytest>=9.2.0",
     "ruff>=0.17.5",
+]
+notebook = [
+    "jupyter>=1.1.1",
+    "matplotlib>=3.11.2",
+    "pandas>=3.1.1",
+    "scikit-learn>=1.9.1",
+    "seaborn>=0.13.2",
+    "shap>=0.54.1",
 ]
