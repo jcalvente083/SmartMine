@@ -1,8 +1,9 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="SmartMine" width="220">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo_smartmine_blanco.png">
+    <img src="docs/assets/logo_smartmine_negro.png" alt="SmartMine" width="220">
+  </picture>
 </p>
-
-<h1 align="center">SmartMine</h1>
 
 **Sistema SCADA bidireccional y Edge Computing para minería subterránea (IIoT / Industria 4.0)**
 
