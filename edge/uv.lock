@@ -1228,6 +1228,7 @@ version = "0.1.0"
 source = { editable = "maintenance" }
 dependencies = [
     { name = "lightgbm" },
+    { name = "numpy" },
     { name = "smartmine-common" },
 ]
 
@@ -1248,6 +1249,7 @@ notebook = [
 [package.metadata]
 requires-dist = [
     { name = "lightgbm", specifier = ">=4.7.0" },
+    { name = "numpy", specifier = ">=2.5.5" },
     { name = "smartmine-common", editable = "common" },
 ]
 
