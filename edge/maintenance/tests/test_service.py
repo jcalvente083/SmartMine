@@ -41,9 +41,13 @@ def service(publisher) -> MaintenanceService:
 
 # --- latido: telemetría ----------------------------------------------------------
 
+
 def test_tick_publishes_telemetry_for_every_machine(service, publisher):
     service.tick()
-    assert [device_id for device_id, _ in publisher.telemetry] == ["trituradora-01", "cinta-02"]
+    assert [device_id for device_id, _ in publisher.telemetry] == [
+        "trituradora-01",
+        "cinta-02",
+    ]
 
 
 def test_tick_telemetry_follows_mqtt_contract(service, publisher):
@@ -71,6 +75,7 @@ def test_stopped_machine_reports_zero_speed_and_torque(service, publisher):
 
 # --- comandos por máquina --------------------------------------------------------
 
+
 def test_stop_command_stops_machine_and_acknowledges(service, publisher):
     service.handle_command("trituradora-01", "cmd-1", "stop")
     assert service.state_of("trituradora-01") == MachineState.STOPPED
@@ -80,7 +85,11 @@ def test_stop_command_stops_machine_and_acknowledges(service, publisher):
 def test_command_for_unknown_machine_is_rejected(service, publisher):
     service.handle_command("maquina-fantasma", "cmd-1", "stop")
     device_id, command_id, outcome, detail = publisher.responses[0]
-    assert (device_id, command_id, outcome) == ("maquina-fantasma", "cmd-1", "rechazado")
+    assert (device_id, command_id, outcome) == (
+        "maquina-fantasma",
+        "cmd-1",
+        "rechazado",
+    )
     assert detail
 
 
@@ -93,6 +102,7 @@ def test_unknown_command_is_rejected(service, publisher):
 
 
 # --- emergencia global -------------------------------------------------------------
+
 
 def test_emergency_stop_affects_every_machine(service, publisher):
     service.handle_emergency("cmd-e", "estop")

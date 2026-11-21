@@ -23,9 +23,13 @@ DATASET_PATH = PROJECT_DIR / "datasets" / "ai4i2020.csv"
 MODEL_PATH = PROJECT_DIR / "models" / "failure_model.txt"
 METADATA_PATH = PROJECT_DIR / "models" / "failure_model.json"
 
-PHYSICAL_MODES = ["HDF", "PWF", "OSF"]  # RNF: aleatorio. TWF: sin señal; se cubre con preventivo
-SEED = 180225  
-F_BETA = 2.0  
+PHYSICAL_MODES = [
+    "HDF",
+    "PWF",
+    "OSF",
+]  # RNF: aleatorio. TWF: sin señal; se cubre con preventivo
+SEED = 180225
+F_BETA = 2.0
 
 
 def load_dataset(path: Path) -> tuple[np.ndarray, np.ndarray, pd.DataFrame]:
@@ -46,9 +50,7 @@ def load_dataset(path: Path) -> tuple[np.ndarray, np.ndarray, pd.DataFrame]:
 
 def split_indices(y: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     indices = np.arange(len(y))
-    train_idx, rest_idx = train_test_split(
-        indices, test_size=0.4, stratify=y, random_state=SEED
-    )
+    train_idx, rest_idx = train_test_split(indices, test_size=0.4, stratify=y, random_state=SEED)
     val_idx, test_idx = train_test_split(
         rest_idx, test_size=0.5, stratify=y[rest_idx], random_state=SEED
     )
@@ -59,10 +61,10 @@ def train(X_train, y_train, X_val, y_val) -> lgb.Booster:
     positives = int(y_train.sum())
     params = {
         "objective": "binary",
-        "metric": "average_precision",  
+        "metric": "average_precision",
         "learning_rate": 0.05,
-        "num_leaves": 15,  
-        "scale_pos_weight": (len(y_train) - positives) / positives, 
+        "num_leaves": 15,
+        "scale_pos_weight": (len(y_train) - positives) / positives,
         "seed": SEED,
         "deterministic": True,
         "force_row_wise": True,
@@ -96,7 +98,12 @@ def evaluate(y_test, test_scores, threshold: float) -> dict:
         "precision": float(precision_score(y_test, predictions)),
         "recall": float(recall_score(y_test, predictions)),
         "f1": float(f1_score(y_test, predictions)),
-        "confusion_matrix": {"tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp)},
+        "confusion_matrix": {
+            "tn": int(tn),
+            "fp": int(fp),
+            "fn": int(fn),
+            "tp": int(tp),
+        },
     }
 
 
@@ -140,9 +147,7 @@ def main() -> None:
         "trained_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "seed": SEED,
     }
-    METADATA_PATH.write_text(
-        json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    METADATA_PATH.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
 
     print(f"Modelo guardado en {MODEL_PATH} ({booster.best_iteration} árboles)")
     print(f"Umbral (máximo F2 en validación): {threshold:.3f}")

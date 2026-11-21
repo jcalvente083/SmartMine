@@ -11,7 +11,9 @@ TIMEOUT_S = 10
 def send_message(token: str, chat_id: str, text: str) -> None:
     url = TELEGRAM_API.format(token=token, method="sendMessage")
 
-    response = requests.post(url, json={"chat_id": chat_id, "text": text}, timeout=TIMEOUT_S)
+    response = requests.post(
+        url, json={"chat_id": chat_id, "text": text}, timeout=TIMEOUT_S
+    )
     data = response.json()
     if not data.get("ok"):
         raise RuntimeError(data.get("description", "respuesta sin descripción"))
@@ -33,7 +35,10 @@ def main() -> int:
     try:
         send_message(token, chat_id, "SmartMine: bot operativo")
     except requests.RequestException as exc:
-        print(f"Error de red al contactar con Telegram: {type(exc).__name__}", file=sys.stderr)
+        print(
+            f"Error de red al contactar con Telegram: {type(exc).__name__}",
+            file=sys.stderr,
+        )
         return 1
     except RuntimeError as exc:
         print(f"Telegram rechazó el mensaje: {exc}", file=sys.stderr)

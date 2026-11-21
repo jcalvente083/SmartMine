@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 MessageHandler = Callable[[str, dict], None]
 
 TOPIC_ROOT = "smartmine"
-QOS = 1 
+QOS = 1
 
 
 @dataclass(frozen=True)
@@ -19,8 +19,8 @@ class MqttSettings:
     host: str
     port: int
     client_id: str
-    module: str  
-    node_id: str  
+    module: str
+    node_id: str
 
 
 class MqttAdapter:
@@ -47,7 +47,7 @@ class MqttAdapter:
 
     def start(self) -> None:
         self._client.connect_async(self._settings.host, self._settings.port, keepalive=30)
-        self._client.loop_start()  
+        self._client.loop_start()
 
     def stop(self) -> None:
         if self._client.is_connected():
@@ -76,12 +76,14 @@ class MqttAdapter:
     def _publish(self, device_id: str, message_type: str, fields: Mapping[str, object]) -> None:
         payload = {
             "device_id": device_id,
-            "timestamp": int(time.time() * 1000),  
+            "timestamp": int(time.time() * 1000),
             **fields,
         }
         topic = self._topic(device_id, message_type)
 
-        info = self._client.publish(topic, json.dumps(payload, ensure_ascii=False), qos=QOS, retain=False)
+        info = self._client.publish(
+            topic, json.dumps(payload, ensure_ascii=False), qos=QOS, retain=False
+        )
         if info.rc != mqtt.MQTT_ERR_SUCCESS:
             logger.warning("Publicación en %s no enviada al momento (código %s)", topic, info.rc)
 

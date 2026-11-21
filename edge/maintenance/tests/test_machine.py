@@ -87,3 +87,73 @@ def test_reset_without_emergency_is_rejected():
     result = machine.reset()
     assert result.outcome == CommandOutcome.REJECTED
     assert machine.state == MachineState.OPERATING
+
+
+# --- Bloqueo LOTO (mantenimiento) -------------------------------------------------
+
+
+def test_new_machine_is_not_locked_out():
+    assert make_machine().locked_out is False
+
+
+def test_start_maintenance_on_stopped_machine_locks_it():
+    machine = make_machine(MachineState.STOPPED)
+    result = machine.start_maintenance()
+    assert result.outcome == CommandOutcome.EXECUTED
+    assert machine.locked_out
+
+
+def test_start_maintenance_on_operating_machine_is_rejected():
+    machine = make_machine(MachineState.OPERATING)
+    result = machine.start_maintenance()
+    assert result.outcome == CommandOutcome.REJECTED
+    assert result.detail
+    assert not machine.locked_out
+
+
+def test_start_maintenance_is_allowed_during_emergency():
+    machine = make_machine(MachineState.EMERGENCY)
+    assert machine.start_maintenance().outcome == CommandOutcome.EXECUTED
+    assert machine.locked_out
+
+
+def test_start_maintenance_twice_is_executed_without_change():
+    machine = make_machine(MachineState.STOPPED)
+    machine.start_maintenance()
+    assert machine.start_maintenance().outcome == CommandOutcome.EXECUTED
+    assert machine.locked_out
+
+
+def test_start_is_rejected_while_locked_out():
+    machine = make_machine(MachineState.STOPPED)
+    machine.start_maintenance()
+    result = machine.start()
+    assert result.outcome == CommandOutcome.REJECTED
+    assert result.detail
+    assert machine.state == MachineState.STOPPED
+
+
+def test_lockout_survives_emergency_and_reset():
+    machine = make_machine(MachineState.STOPPED)
+    machine.start_maintenance()
+    machine.emergency_stop()
+    machine.reset()
+    assert machine.state == MachineState.STOPPED
+    assert machine.locked_out
+    assert machine.start().outcome == CommandOutcome.REJECTED
+
+
+def test_end_maintenance_unlocks_but_does_not_start():
+    machine = make_machine(MachineState.STOPPED)
+    machine.start_maintenance()
+    result = machine.end_maintenance()
+    assert result.outcome == CommandOutcome.EXECUTED
+    assert not machine.locked_out
+    assert machine.state == MachineState.STOPPED
+
+
+def test_end_maintenance_without_lockout_is_rejected():
+    machine = make_machine(MachineState.STOPPED)
+    result = machine.end_maintenance()
+    assert result.outcome == CommandOutcome.REJECTED
+    assert result.detail

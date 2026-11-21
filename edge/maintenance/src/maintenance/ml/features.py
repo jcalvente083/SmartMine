@@ -17,7 +17,7 @@ FEATURE_NAMES = (
     "strain",
 )
 
-# Calidad del producto (AI4I): 
+# Calidad del producto (AI4I):
 TYPE_CODES = {"L": 0, "M": 1, "H": 2}
 
 
@@ -39,9 +39,9 @@ def feature_matrix(
     torque_nm,
     tool_wear_min,
 ) -> np.ndarray:
-    temp_diff_k = process_temperature_k - air_temperature_k  
-    power_w = torque_nm * rotational_speed_rpm * 2 * math.pi / 60  
-    strain = tool_wear_min * torque_nm  
+    temp_diff_k = process_temperature_k - air_temperature_k
+    power_w = torque_nm * rotational_speed_rpm * 2 * math.pi / 60
+    strain = tool_wear_min * torque_nm
 
     return np.column_stack(
         [

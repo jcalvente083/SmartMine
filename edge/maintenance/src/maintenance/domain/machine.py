@@ -11,6 +11,7 @@ class MachineState(StrEnum):
 class CommandOutcome(StrEnum):
     EXECUTED = "ejecutado"
     REJECTED = "rechazado"
+    ERROR = "error"
 
 
 @dataclass(frozen=True)
@@ -23,21 +24,21 @@ class CommandResult:
 class Machine:
     machine_id: str
     state: MachineState = MachineState.OPERATING
+    locked_out: bool = False
 
     def start(self) -> CommandResult:
         if self.state == MachineState.EMERGENCY:
+            return CommandResult(CommandOutcome.REJECTED, "Emergencia activa: requiere rearme")
+        if self.locked_out:
             return CommandResult(
-                CommandOutcome.REJECTED, "Emergencia activa: requiere rearme"
+                CommandOutcome.REJECTED, "Bloqueo LOTO activo: máquina en mantenimiento"
             )
-        else:
-            self.state = MachineState.OPERATING
-            return CommandResult(CommandOutcome.EXECUTED)
+        self.state = MachineState.OPERATING
+        return CommandResult(CommandOutcome.EXECUTED)
 
     def stop(self) -> CommandResult:
         if self.state == MachineState.EMERGENCY:
-            return CommandResult(
-                CommandOutcome.REJECTED, "Emergencia activa: requiere rearme"
-            )
+            return CommandResult(CommandOutcome.REJECTED, "Emergencia activa: requiere rearme")
         self.state = MachineState.STOPPED
         return CommandResult(CommandOutcome.EXECUTED)
 
@@ -47,7 +48,21 @@ class Machine:
 
     def reset(self) -> CommandResult:
         if self.state != MachineState.EMERGENCY:
-            return CommandResult(CommandOutcome.REJECTED, "no hay emergencia activa")
-        else:
-            self.state = MachineState.STOPPED
-            return CommandResult(CommandOutcome.EXECUTED)
+            return CommandResult(CommandOutcome.REJECTED, "No hay emergencia activa")
+        self.state = MachineState.STOPPED
+        return CommandResult(CommandOutcome.EXECUTED)
+
+    def start_maintenance(self) -> CommandResult:
+        if self.state == MachineState.OPERATING:
+            return CommandResult(
+                CommandOutcome.REJECTED,
+                "Máquina en marcha: detenla antes de iniciar el mantenimiento",
+            )
+        self.locked_out = True
+        return CommandResult(CommandOutcome.EXECUTED)
+
+    def end_maintenance(self) -> CommandResult:
+        if not self.locked_out:
+            return CommandResult(CommandOutcome.REJECTED, "No hay mantenimiento activo")
+        self.locked_out = False
+        return CommandResult(CommandOutcome.EXECUTED)

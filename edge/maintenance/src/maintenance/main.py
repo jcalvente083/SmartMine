@@ -6,11 +6,10 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from smartmine_common.config import env_float, env_int, env_list, env_str
-from smartmine_common.mqtt_adapter import MqttAdapter, MqttSettings
-
 from maintenance.adapters.ai4i_simulator import Ai4iSimulator
 from maintenance.service import MaintenanceService
+from smartmine_common.config import env_float, env_int, env_list, env_str
+from smartmine_common.mqtt_adapter import MqttAdapter, MqttSettings
 
 logger = logging.getLogger("maintenance")
 
@@ -25,7 +24,7 @@ DEFAULT_DATASET = Path(__file__).resolve().parents[2] / "datasets" / "ai4i2020.c
 class InboundCommand:
     """Comando recibido por MQTT, ya traducido, pendiente de procesar en el hilo principal."""
 
-    machine_id: str | None  
+    machine_id: str | None
     command_id: str
     command: str
 
@@ -83,7 +82,7 @@ def parse_machine_command(topic: str, payload: dict) -> InboundCommand:
     Se ejecuta en el hilo de paho: una excepción aquí podría tumbar el hilo de red.
     """
     return InboundCommand(
-        machine_id=topic.split("/")[2],  
+        machine_id=topic.split("/")[2],
         command_id=str(payload.get("command_id", "")),
         command=str(payload.get("comando", "")),
     )

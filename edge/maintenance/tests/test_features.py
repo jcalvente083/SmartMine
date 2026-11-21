@@ -50,7 +50,7 @@ def test_features_from_reading_returns_one_row_with_every_feature():
 
 
 def test_derived_features_follow_the_physics():
-    row = dict(zip(FEATURE_NAMES, features_from_reading(READING, "M")[0]))
+    row = dict(zip(FEATURE_NAMES, features_from_reading(READING, "M")[0], strict=True))
     assert row["type_code"] == 1
     assert row["temp_diff_k"] == pytest.approx(308.6 - 298.1)
     assert row["power_w"] == pytest.approx(42.8 * 1551.0 * 2 * math.pi / 60)
@@ -66,7 +66,9 @@ def test_single_reading_and_batch_produce_identical_features():
     ]
     types = ["M", "L", "H"]
 
-    one_by_one = np.vstack([features_from_reading(r, t) for r, t in zip(readings, types)])
+    one_by_one = np.vstack(
+        [features_from_reading(r, t) for r, t in zip(readings, types, strict=True)]
+    )
     batch = feature_matrix(
         type_codes=np.array([type_code(t) for t in types]),
         air_temperature_k=np.array([r.air_temperature_k for r in readings]),

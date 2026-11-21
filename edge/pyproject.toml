@@ -4,3 +4,22 @@ members = [
     "common",
     "maintenance",
 ]
+
+# --- Ruff: formato y revisión de estilo para todo el workspace ----------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "F",  # Errores básicos (pycodestyle, pyflakes)
+    "I",       # Orden de los imports
+    "UP",      # Sintaxis moderna de Python
+    "B",       # Errores de diseño habituales (bugbear)
+    "SIM",     # Simplificaciones
+    "RET",     # Return: incluye el "else innecesario tras un return"
+    "RUF",     # Reglas propias de Ruff
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["maintenance", "smartmine_common"]

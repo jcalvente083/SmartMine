@@ -3,7 +3,8 @@ import os
 
 class ConfigError(RuntimeError):
     """Configuración ausente o inválida: el nodo no debe arrancar."""
-    
+
+
 def env_str(name: str, default: str | None = None) -> str:
     value = os.getenv(name, default)
     if not value:

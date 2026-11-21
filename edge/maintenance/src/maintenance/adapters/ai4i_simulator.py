@@ -19,7 +19,7 @@ class Ai4iSimulator:
 
     def read(self, machine_id: str) -> MachineReading:
         index = self._cursors[machine_id]
-        self._cursors[machine_id] = (index + 1) % len(self._rows)  
+        self._cursors[machine_id] = (index + 1) % len(self._rows)
         return self._rows[index]
 
     @staticmethod

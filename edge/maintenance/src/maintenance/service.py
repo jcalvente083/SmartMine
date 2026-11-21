@@ -1,16 +1,28 @@
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import replace
+from typing import ClassVar
 
-from smartmine_common.ports import EventPublisher
-
-from maintenance.domain.machine import CommandOutcome, CommandResult, Machine, MachineState
+from maintenance.domain.machine import (
+    CommandOutcome,
+    CommandResult,
+    Machine,
+    MachineState,
+)
 from maintenance.ports import SensorReader
+from smartmine_common.ports import EventPublisher
 
 
 class MaintenanceService:
-    _MACHINE_COMMANDS = {"start": Machine.start, "stop": Machine.stop}
-    _EMERGENCY_COMMANDS = {"estop": Machine.emergency_stop, "reset": Machine.reset}
-
+    
+    _MACHINE_COMMANDS: ClassVar[Mapping[str, Callable[[Machine], CommandResult]]] = {
+        "start": Machine.start,
+        "stop": Machine.stop,
+    }
+    _EMERGENCY_COMMANDS: ClassVar[Mapping[str, Callable[[Machine], CommandResult]]] = {
+        "estop": Machine.emergency_stop,
+        "reset": Machine.reset,
+    }
+   
     def __init__(
         self,
         machine_ids: Iterable[str],
