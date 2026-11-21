@@ -5,6 +5,7 @@ Solo contratos. Las implementaciones viven en adapters/ (y los dobles, en tests/
 
 from typing import Protocol
 
+from maintenance.domain.prediction import FailurePrediction
 from maintenance.domain.reading import MachineReading
 
 
@@ -13,6 +14,19 @@ class SensorReader(Protocol):
 
     def read(self, machine_id: str) -> MachineReading:
         """Devuelve la lectura actual de la máquina indicada."""
+        ...
+
+
+class FailurePredictor(Protocol):
+    """Modelo que estima el riesgo de fallo de proceso a partir de una lectura."""
+
+    def predict(self, reading: MachineReading, product_type: str) -> FailurePrediction:
+        """Devuelve la probabilidad de fallo y sus causas principales.
+
+        Args:
+            reading: lectura de sensores de una máquina en marcha.
+            product_type: calidad del producto que procesa la máquina ("L", "M" o "H").
+        """
         ...
 
 
