@@ -11,7 +11,6 @@ services:
       - "./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"
       - "mosquitto_data:/mosquitto/data"
     healthcheck:
-      # Si consigue publicar, el broker está vivo (topic fuera de smartmine/#)
       test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "healthcheck/mosquitto", "-m", "ok"]
       interval: 10s
       timeout: 5s
@@ -41,7 +40,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s   # La configuración inicial tarda unos segundos
+      start_period: 20s   
 
   # --- Puente MQTT → InfluxDB ----------------------------------------------
   telegraf:
@@ -49,14 +48,12 @@ services:
     container_name: smartmine-telegraf
     restart: unless-stopped
     environment:
-      # Izquierda: nombres que pide telegraf.conf · Derecha: valores del .env
       INFLUX_TOKEN: ${INFLUX_TOKEN}
       INFLUX_ORG: ${INFLUX_ORG}
       INFLUX_BUCKET: ${INFLUX_BUCKET}
     volumes:
       - "./infra/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
     depends_on:
-      # Arranca solo cuando ambos estén sanos, no solo arrancados
       mosquitto:
         condition: service_healthy
       influxdb:
@@ -65,30 +62,33 @@ services:
   # --- Nodo Edge: Mantenimiento Predictivo ------------------------------------
   edge-maintenance:
     build:
-      context: ./edge                   
+      context: ./edge
       dockerfile: maintenance/Dockerfile
     image: smartmine/edge-maintenance:dev
     container_name: smartmine-edge-maintenance
     restart: unless-stopped
     environment:
-      MQTT_HOST: mosquitto              
+      MQTT_HOST: mosquitto
       MQTT_PORT: "1883"
       MQTT_CLIENT_ID: edge-mantenimiento
       NODE_ID: nodo-mantenimiento
       MACHINE_IDS: trituradora-01,cinta-02,molino-03
       TICK_INTERVAL_S: "1.0"
+    volumes:
+      - "maintenance_state:/app/data"
     depends_on:
       mosquitto:
         condition: service_healthy
     deploy:
       resources:
         limits:
-          cpus: "0.5"                   
+          cpus: "0.5"
           memory: 256M
-    stop_grace_period: 5s                
+    stop_grace_period: 5s
 
 # --- Volúmenes con nombre ----------------------------------------------------
 volumes:
   mosquitto_data:
   influxdb_data:
   influxdb_config:
+  maintenance_state:

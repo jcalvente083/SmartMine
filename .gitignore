@@ -20,10 +20,14 @@ env/
 .coverage
 htmlcov/
 
+# Estado local del nodo de Mantenimiento
+edge/maintenance/data/
+
 # --- Modelos de visión artificial (pesados; se descargan, no se versionan) ---
 *.pt
 *.onnx
 *.engine
+
 
 # --- C++ / Qt / CMake --------------------------------------------------------
 build/

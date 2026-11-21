@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from maintenance.adapters.ai4i_simulator import Ai4iSimulator
+from maintenance.adapters.json_lockout_store import JsonFileLockoutStore
 from maintenance.service import MaintenanceService
 from smartmine_common.config import env_float, env_int, env_list, env_str
 from smartmine_common.mqtt_adapter import MqttAdapter, MqttSettings
@@ -17,7 +18,10 @@ MODULE = "mantenimiento"
 MACHINE_COMMAND_TOPIC = f"smartmine/{MODULE}/+/comando"
 EMERGENCY_TOPIC = "smartmine/global/all/comando"
 
-DEFAULT_DATASET = Path(__file__).resolve().parents[2] / "datasets" / "ai4i2020.csv"
+# Valores por defecto
+PACKAGE_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DATASET = PACKAGE_ROOT / "datasets" / "ai4i2020.csv"
+DEFAULT_LOCKOUT_FILE = PACKAGE_ROOT / "data" / "candados.json"
 
 
 @dataclass(frozen=True)
@@ -34,10 +38,11 @@ def main() -> None:
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     )
 
-    # --- Configuración (variables de entorno, con valores por defecto para desarrollo)
+    # --- Configuración 
     machine_ids = env_list("MACHINE_IDS", "trituradora-01,cinta-02,molino-03")
     tick_interval_s = env_float("TICK_INTERVAL_S", 1.0)
     dataset = Path(env_str("DATASET_PATH", str(DEFAULT_DATASET)))
+    lockout_file = Path(env_str("LOCKOUT_FILE", str(DEFAULT_LOCKOUT_FILE)))
     settings = MqttSettings(
         host=env_str("MQTT_HOST", "localhost"),
         port=env_int("MQTT_PORT", 1883),
@@ -49,9 +54,10 @@ def main() -> None:
     # --- Composición: adaptadores → servicio
     mqtt_adapter = MqttAdapter(settings)
     sensors = Ai4iSimulator(dataset, machine_ids)
-    service = MaintenanceService(machine_ids, sensors, mqtt_adapter)
+    lockout_store = JsonFileLockoutStore(lockout_file)
+    service = MaintenanceService(machine_ids, sensors, mqtt_adapter, lockout_store)
 
-    # --- El hilo de paho solo encola; el dominio se ejecuta únicamente en el hilo principal
+    # --- El hilo de paho solo encola
     inbox: queue.Queue[InboundCommand] = queue.Queue()
     mqtt_adapter.subscribe(
         MACHINE_COMMAND_TOPIC,
@@ -68,7 +74,11 @@ def main() -> None:
     signal.signal(signal.SIGINT, lambda *_: stop_event.set())
 
     mqtt_adapter.start()
-    logger.info("Nodo de Mantenimiento en marcha con %d máquinas", len(machine_ids))
+    logger.info(
+        "Nodo de Mantenimiento en marcha con %d máquinas (candados en %s)",
+        len(machine_ids),
+        lockout_file,
+    )
     try:
         run_loop(service, inbox, tick_interval_s, stop_event)
     finally:
@@ -77,10 +87,6 @@ def main() -> None:
 
 
 def parse_machine_command(topic: str, payload: dict) -> InboundCommand:
-    """Traduce un comando de máquina. Nunca lanza: un payload raro se rechaza después.
-
-    Se ejecuta en el hilo de paho: una excepción aquí podría tumbar el hilo de red.
-    """
     return InboundCommand(
         machine_id=topic.split("/")[2],
         command_id=str(payload.get("command_id", "")),
@@ -89,7 +95,6 @@ def parse_machine_command(topic: str, payload: dict) -> InboundCommand:
 
 
 def parse_emergency_command(payload: dict) -> InboundCommand:
-    """Traduce un comando global de emergencia (afecta a todas las máquinas)."""
     return InboundCommand(
         machine_id=None,
         command_id=str(payload.get("command_id", "")),

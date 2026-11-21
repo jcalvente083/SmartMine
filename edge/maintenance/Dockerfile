@@ -25,7 +25,9 @@ RUN uv sync --frozen --no-dev --package maintenance --no-editable
 # --- Etapa 2: imagen final, mínima y sin root ---------------------------------------
 FROM python:3.12-slim
 
-RUN useradd --create-home --uid 10001 edge
+RUN useradd --create-home --uid 10001 edge \
+    && mkdir -p /app/data \
+    && chown edge:edge /app/data
 WORKDIR /app
 
 COPY --from=builder --chown=edge /app/.venv /app/.venv
@@ -33,7 +35,8 @@ COPY --chown=edge maintenance/datasets /app/datasets
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
-    DATASET_PATH=/app/datasets/ai4i2020.csv
+    DATASET_PATH=/app/datasets/ai4i2020.csv \
+    LOCKOUT_FILE=/app/data/candados.json
 
 USER edge
 

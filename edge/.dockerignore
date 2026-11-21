@@ -3,3 +3,6 @@
 **/__pycache__
 **/.pytest_cache
 **/.ruff_cache
+
+# Estado local: no debe acabar dentro de la imagen
+maintenance/data/
