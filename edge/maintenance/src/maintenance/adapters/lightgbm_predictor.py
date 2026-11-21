@@ -55,7 +55,7 @@ class LightGbmPredictor:
 
     def _check_features(self, metadata: dict) -> None:
         model_features = metadata.get("feature_names")
-        if model_features != FEATURE_NAMES:
+        if model_features != list(FEATURE_NAMES):
             raise ModelMismatchError(
                 f"Las variables del modelo no coinciden con features.py. "
                 f"Modelo: {model_features}, esperadas: {FEATURE_NAMES}"
