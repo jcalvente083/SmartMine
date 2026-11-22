@@ -24,6 +24,8 @@ Patrón: `smartmine/<modulo>/<id_dispositivo>/<tipo_mensaje>`
    - Cada nodo responde con un ACK por actuador.
 5. **Estado de los nodos:** Cada nodo publica su disponibilidad en `smartmine/<modulo>/<node_id>/estado` (ej. `smartmine/mantenimiento/nodo-mantenimiento/estado`). El payload es **texto plano**: `online` u `offline`. Siempre retenido y con QoS 1. El `offline` se publica como *Last Will* (caída inesperada) y también de forma explícita en una parada ordenada.
 6. **Respuestas:** `device_id` y `timestamp` los añade siempre el nodo. El campo `detalle` explica el motivo cuando el resultado es `rechazado` o `error`, y puede ir vacío cuando es `ejecutado`.
+7. **Alertas:** todas las alertas comparten los campos `tipo`, `categoria`, `gravedad` y `mensaje` (texto legible para el operador). Un nodo emite **una alerta por episodio**, no una por latido: tras avisar, guarda un periodo de silencio por dispositivo (30 s por defecto en Mantenimiento, configurable con `ALERT_COOLDOWN_S`). El acuse de recibo y la escalada son responsabilidad del SCADA y del notificador, no del nodo (ISA-18.2).
+8. **Candado LOTO (Mantenimiento):** `iniciar_mantenimiento` solo se acepta con la máquina detenida (`parada` o `emergencia`). Mientras el candado está puesto, `start` se rechaza. El candado sobrevive a la emergencia, al rearme y al reinicio del nodo (se persiste en disco), y solo lo retira `finalizar_mantenimiento`. Si el nodo no puede leer los candados guardados al arrancar, bloquea todas las máquinas (*fail-safe*).
 
 ## Suscripciones Clave
 - **Telegraf (Base de datos):** `smartmine/+/+/telemetria`
@@ -31,10 +33,15 @@ Patrón: `smartmine/<modulo>/<id_dispositivo>/<tipo_mensaje>`
 - **Emergencia Global:** `smartmine/global/all/comando` (Todos los actuadores se suscriben aquí).
 
 ## Vocabulario Cerrado
-- **Comandos permitidos (`comando`):** `start`, `stop`, `estop`, `reset`, `activar_aspersores`, `nueva_tarea`, `permitir`, `denegar`.
+- **Comandos permitidos (`comando`):** `start`, `stop`, `estop`, `reset`, `iniciar_mantenimiento`, `finalizar_mantenimiento`, `activar_aspersores`, `nueva_tarea`, `permitir`, `denegar`.
 - **Resultados de respuesta (`resultado`):** `ejecutado`, `rechazado`, `error`.
 - **Origen de los comandos (`origen`):** `scada_dashboard`, `telegram_bot`.
 - **Modo de operación (`modo_operacion`) en Mantenimiento:** `operando`, `parada`, `emergencia`. Con la máquina parada o en emergencia, `velocidad_rpm` y `torque_nm` valen 0, pero las temperaturas y el desgaste se siguen enviando.
+- **Campos adicionales de la telemetría de Mantenimiento:**
+  - `bloqueo_loto`: `1` con el candado LOTO puesto, `0` sin él. Entero y no booleano, porque el parser JSON de Telegraf descarta los booleanos.
+  - `probabilidad_fallo`: probabilidad de fallo de proceso (0 a 1, 4 decimales) estimada por el modelo. **Solo aparece con la máquina en `operando`**: parada, no se predice.
+- **Alertas (`tipo` / `categoria` / `gravedad`):**
+  - Mantenimiento: `riesgo_fallo` / `mantenimiento_predictivo` / `alta`. Campos propios: `probabilidad`, `umbral` (el elegido al entrenar el modelo) y `causas` (hasta 3 variables que más empujan hacia el fallo, con su `contribucion` SHAP en log-odds).
 - **Parámetros específicos por comando:**
   - `nueva_tarea`: Requiere `destino_x` (número) y `destino_y` (número).
   - `permitir` / `denegar`: Requieren `solicitud_id` (UUID v4) para identificar la solicitud de acceso asociada.
@@ -43,7 +50,7 @@ Patrón: `smartmine/<modulo>/<id_dispositivo>/<tipo_mensaje>`
 
 ## Ejemplos de Payload JSON por Módulo
 
-### 1. MANTENIMIENTO: Telemetría y Comandos
+### 1. MANTENIMIENTO: Telemetría, Comandos y Alertas
 **Topic (Telemetría):** `smartmine/mantenimiento/trituradora-01/telemetria`
 ```json
 {
@@ -54,7 +61,9 @@ Patrón: `smartmine/<modulo>/<id_dispositivo>/<tipo_mensaje>`
   "velocidad_rpm": 1551,
   "torque_nm": 42.8,
   "desgaste_herramienta_min": 108,
-  "modo_operacion": "operando"
+  "modo_operacion": "operando",
+  "bloqueo_loto": 0,
+  "probabilidad_fallo": 0.0003
 }
 ```
 **Topic (Comando - Parada individual):** `smartmine/mantenimiento/trituradora-01/comando`
@@ -64,6 +73,33 @@ Patrón: `smartmine/<modulo>/<id_dispositivo>/<tipo_mensaje>`
   "timestamp": 1718000001000,
   "comando": "stop",
   "origen": "scada_dashboard"
+}
+```
+**Topic (Comando - Iniciar mantenimiento / candado LOTO):** `smartmine/mantenimiento/trituradora-01/comando`
+```json
+{
+  "command_id": "3e9a7c1d-2b4f-4d8e-9a6c-1f0b5e7d3c28",
+  "timestamp": 1718000002000,
+  "comando": "iniciar_mantenimiento",
+  "origen": "scada_dashboard"
+}
+```
+**Topic (Alerta - Riesgo de fallo):** `smartmine/mantenimiento/cinta-02/alerta`
+```json
+{
+  "device_id": "cinta-02",
+  "timestamp": 1795345659955,
+  "tipo": "riesgo_fallo",
+  "categoria": "mantenimiento_predictivo",
+  "gravedad": "alta",
+  "mensaje": "Riesgo de fallo de proceso: 98 %",
+  "probabilidad": 0.9752,
+  "umbral": 0.7006,
+  "causas": [
+    {"variable": "power_w", "contribucion": 9.968},
+    {"variable": "rotational_speed_rpm", "contribucion": 3.42},
+    {"variable": "air_temperature_k", "contribucion": 0.401}
+  ]
 }
 ```
 
