@@ -1,4 +1,5 @@
 import logging
+import time
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import replace
 from typing import ClassVar
@@ -9,7 +10,9 @@ from maintenance.domain.machine import (
     Machine,
     MachineState,
 )
-from maintenance.ports import LockoutStore, LockoutStoreError, SensorReader
+from maintenance.domain.prediction import FailurePrediction
+from maintenance.domain.reading import MachineReading
+from maintenance.ports import FailurePredictor, LockoutStore, LockoutStoreError, SensorReader
 from smartmine_common.ports import EventPublisher
 
 logger = logging.getLogger(__name__)
@@ -18,6 +21,7 @@ type MachineAction = Callable[[Machine], CommandResult]
 
 
 class MaintenanceService:
+
     _MACHINE_COMMANDS: ClassVar[Mapping[str, MachineAction]] = {
         "start": Machine.start,
         "stop": Machine.stop,
@@ -33,15 +37,24 @@ class MaintenanceService:
 
     def __init__(
         self,
-        machine_ids: Iterable[str],
+        machines: Mapping[str, str],
         sensors: SensorReader,
+        predictor: FailurePredictor,
         publisher: EventPublisher,
         lockout_store: LockoutStore,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+        alert_cooldown_s: float = 30.0,
     ) -> None:
+        self._product_types = dict(machines)
         self._sensors = sensors
+        self._predictor = predictor
         self._publisher = publisher
         self._lockout_store = lockout_store
-        self._machines = self._build_machines(machine_ids)
+        self._clock = clock
+        self._alert_cooldown_s = alert_cooldown_s
+        self._last_alert_at: dict[str, float] = {}  
+        self._machines = self._build_machines(machines)
 
     def state_of(self, machine_id: str) -> MachineState:
         return self._machines[machine_id].state
@@ -53,24 +66,29 @@ class MaintenanceService:
         for machine in self._machines.values():
             reading = self._sensors.read(machine.machine_id)
 
-            if machine.state != MachineState.OPERATING:
+            prediction = None
+            if machine.state == MachineState.OPERATING:
+                prediction = self._predict(machine.machine_id, reading)
+            else:
                 reading = replace(reading, rotational_speed_rpm=0, torque_nm=0)
 
-            self._publisher.publish_telemetry(
-                machine.machine_id,
-                {
-                    "temperatura_aire_k": reading.air_temperature_k,
-                    "temperatura_proceso_k": reading.process_temperature_k,
-                    "velocidad_rpm": reading.rotational_speed_rpm,
-                    "torque_nm": reading.torque_nm,
-                    "desgaste_herramienta_min": reading.tool_wear_min,
-                    "modo_operacion": machine.state,
-                    "bloqueo_loto": int(machine.locked_out),
-                },
-            )
+            telemetry = {
+                "temperatura_aire_k": reading.air_temperature_k,
+                "temperatura_proceso_k": reading.process_temperature_k,
+                "velocidad_rpm": reading.rotational_speed_rpm,
+                "torque_nm": reading.torque_nm,
+                "desgaste_herramienta_min": reading.tool_wear_min,
+                "modo_operacion": machine.state,
+                "bloqueo_loto": int(machine.locked_out),
+            }
+            if prediction is not None:
+                telemetry["probabilidad_fallo"] = round(prediction.probability, 4)
+            self._publisher.publish_telemetry(machine.machine_id, telemetry)
+
+            if prediction is not None:
+                self._alert_if_needed(machine.machine_id, prediction)
 
     def handle_command(self, machine_id: str, command_id: str, command: str) -> None:
-        """Aplica un comando a una máquina y responde siempre con un ACK."""
         machine = self._machines.get(machine_id)
         if machine is None:
             self._reject(machine_id, command_id, f"Máquina desconocida: {machine_id}")
@@ -89,12 +107,47 @@ class MaintenanceService:
         self._respond(machine_id, command_id, action(machine))
 
     def handle_emergency(self, command_id: str, command: str) -> None:
+
         action = self._EMERGENCY_COMMANDS.get(command)
         if action is None:
-            return 
+            return  
 
         for machine in self._machines.values():
             self._respond(machine.machine_id, command_id, action(machine))
+
+    def _predict(self, machine_id: str, reading: MachineReading) -> FailurePrediction | None:
+        try:
+            return self._predictor.predict(reading, self._product_types[machine_id])
+        except Exception:
+            logger.exception("Error al predecir el fallo de %s", machine_id)
+            return None
+
+    def _alert_if_needed(self, machine_id: str, prediction: FailurePrediction) -> None:
+        if not prediction.is_failure_risk:
+            return
+
+        now = self._clock()
+        last_alert_at = self._last_alert_at.get(machine_id)
+        if last_alert_at is not None and now - last_alert_at < self._alert_cooldown_s:
+            return
+
+        self._last_alert_at[machine_id] = now
+        self._publisher.publish_alert(machine_id, self._failure_alert(prediction))
+
+    @staticmethod
+    def _failure_alert(prediction: FailurePrediction) -> dict:
+        return {
+            "tipo": "riesgo_fallo",
+            "categoria": "mantenimiento_predictivo",
+            "gravedad": "alta",
+            "mensaje": f"Riesgo de fallo de proceso: {prediction.probability * 100:.0f} %",
+            "probabilidad": round(prediction.probability, 4),
+            "umbral": round(prediction.threshold, 4),
+            "causas": [
+                {"variable": cause.feature, "contribucion": round(cause.contribution, 3)}
+                for cause in prediction.top_contributions
+            ],
+        }
 
     def _build_machines(self, machine_ids: Iterable[str]) -> dict[str, Machine]:
         machine_ids = list(machine_ids)  

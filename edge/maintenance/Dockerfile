@@ -25,6 +25,10 @@ RUN uv sync --frozen --no-dev --package maintenance --no-editable
 # --- Etapa 2: imagen final, mínima y sin root ---------------------------------------
 FROM python:3.12-slim
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN useradd --create-home --uid 10001 edge \
     && mkdir -p /app/data \
     && chown edge:edge /app/data
@@ -32,11 +36,13 @@ WORKDIR /app
 
 COPY --from=builder --chown=edge /app/.venv /app/.venv
 COPY --chown=edge maintenance/datasets /app/datasets
+COPY --chown=edge maintenance/models /app/models
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     DATASET_PATH=/app/datasets/ai4i2020.csv \
-    LOCKOUT_FILE=/app/data/candados.json
+    LOCKOUT_FILE=/app/data/candados.json \
+    MODEL_PATH=/app/models/failure_model.txt
 
 USER edge
 

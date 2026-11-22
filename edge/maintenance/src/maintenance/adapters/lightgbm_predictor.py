@@ -30,7 +30,7 @@ class LightGbmPredictor:
         """Probabilidad de fallo y las variables que más empujan hacia él."""
         features = features_from_reading(reading, product_type)
 
-        row = self._booster.predict(features, pred_contrib=True)[0]
+        row = self._booster.predict(features, pred_contrib=True, num_threads=1)[0]
         contributions = row[:-1]
         bias = row[-1]
         probability = 1 / (1 + math.exp(-(sum(contributions) + bias)))
